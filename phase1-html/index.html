@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SpendSmart — AI-Powered Student Expense Tracker. Track your expenses, set a monthly budget, and get spending insights." />
+  <title>SpendSmart — Student Expense Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       1. HEADER: Logo + Navigation
+       ============================================================ -->
+  <header>
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true">S</span>
+      <h1 class="logo-title">SpendSmart</h1>
+    </div>
+    <nav aria-label="Main navigation">
+      <ul>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#add-expense">Add Expense</a></li>
+        <li><a href="#budget">Budget</a></li>
+        <li><a href="#history">History</a></li>
+        <li><a href="#insights">Insights</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ===========================================================
+         2. WELCOME / DASHBOARD SECTION
+         =========================================================== -->
+    <section id="dashboard" aria-labelledby="dashboard-heading">
+      <h2 id="dashboard-heading">Welcome to SpendSmart</h2>
+      <p>
+        Track your student spending, set a monthly budget, and get AI-powered
+        insights on where your money goes each month.
+      </p>
+    </section>
+
+    <!-- ===========================================================
+         3. SUMMARY SECTION: Budget / Total Spending / Remaining
+         =========================================================== -->
+    <section aria-labelledby="summary-heading">
+      <h2 id="summary-heading">Monthly Summary</h2>
+      <div class="summary-cards">
+
+        <article class="card" aria-labelledby="budget-card-heading">
+          <h3 id="budget-card-heading">Monthly Budget</h3>
+          <p class="card-amount" aria-label="Monthly budget: 5,000 rupees">₹5,000</p>
+        </article>
+
+        <article class="card" aria-labelledby="spending-card-heading">
+          <h3 id="spending-card-heading">Total Spending</h3>
+          <p class="card-amount" aria-label="Total spending so far: 3,250 rupees">₹3,250</p>
+        </article>
+
+        <article class="card" aria-labelledby="remaining-card-heading">
+          <h3 id="remaining-card-heading">Remaining Balance</h3>
+          <p class="card-amount" aria-label="Remaining balance: 1,750 rupees">₹1,750</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         4. ADD EXPENSE FORM
+         =========================================================== -->
+    <section id="add-expense" aria-labelledby="add-expense-heading">
+      <h2 id="add-expense-heading">Add Expense</h2>
+
+      <form action="#" method="post" aria-label="Add a new expense">
+
+        <!-- Expense Title -->
+        <div class="field">
+          <label for="expense-title">Expense Title</label>
+          <input
+            type="text"
+            id="expense-title"
+            name="title"
+            placeholder="e.g. Bus ticket to campus"
+            required
+            minlength="2"
+            maxlength="80"
+          />
+        </div>
+
+        <!-- Amount -->
+        <div class="field">
+          <label for="expense-amount">Amount (₹)</label>
+          <input
+            type="number"
+            id="expense-amount"
+            name="amount"
+            placeholder="e.g. 150"
+            min="0.01"
+            step="0.01"
+            required
+          />
+        </div>
+
+        <!-- Category -->
+        <div class="field">
+          <label for="expense-category">Category</label>
+          <select id="expense-category" name="category" required>
+            <option value="" disabled selected>Select a category</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Education">Education</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Date -->
+        <div class="field">
+          <label for="expense-date">Date</label>
+          <input type="date" id="expense-date" name="date" required />
+        </div>
+
+        <!-- Payment Method -->
+        <div class="field">
+          <fieldset aria-describedby="payment-hint">
+            <legend>Payment Method</legend>
+            <span id="payment-hint" class="visually-hidden">
+              Choose how you paid for this expense.
+            </span>
+            <label for="pay-cash">
+              <input type="radio" id="pay-cash" name="paymentMethod" value="Cash" required />
+              Cash
+            </label>
+            <label for="pay-card">
+              <input type="radio" id="pay-card" name="paymentMethod" value="Card" />
+              Card
+            </label>
+            <label for="pay-upi">
+              <input type="radio" id="pay-upi" name="paymentMethod" value="UPI" />
+              UPI
+            </label>
+            <label for="pay-wallet">
+              <input type="radio" id="pay-wallet" name="paymentMethod" value="Wallet" />
+              Wallet
+            </label>
+          </fieldset>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit">Add Expense</button>
+
+      </form>
+    </section>
+
+    <!-- ===========================================================
+         5. SET MONTHLY BUDGET FORM
+         =========================================================== -->
+    <section id="budget" aria-labelledby="budget-heading">
+      <h2 id="budget-heading">Set Monthly Budget</h2>
+      <p>Define how much you plan to spend this month. SpendSmart will
+      calculate your remaining balance and flag when you are close to
+      or over budget.</p>
+
+      <form action="#" method="post" aria-label="Set your monthly budget">
+        <div class="field">
+          <label for="monthly-budget">Monthly Budget (₹)</label>
+          <input
+            type="number"
+            id="monthly-budget"
+            name="monthlyBudget"
+            placeholder="e.g. 5000"
+            min="1"
+            step="1"
+            required
+          />
+        </div>
+        <button type="submit">Save Budget</button>
+      </form>
+    </section>
+
+    <!-- ===========================================================
+         6. EXPENSE HISTORY TABLE
+         =========================================================== -->
+    <section id="history" aria-labelledby="history-heading">
+      <h2 id="history-heading">Expense History</h2>
+
+      <div class="table-scroll">
+      <table>
+        <caption>Recent expenses logged this month.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Category</th>
+            <th scope="col">Date</th>
+            <th scope="col">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bus ticket to campus</td>
+            <td>Transport</td>
+            <td>2026-02-14</td>
+            <td>₹30</td>
+          </tr>
+          <tr>
+            <td>Textbook — Data Structures</td>
+            <td>Education</td>
+            <td>2026-02-15</td>
+            <td>₹420</td>
+          </tr>
+          <tr>
+            <td>Lunch — canteen </td>
+            <td>Food</td>
+            <td>2026-02-16</td>
+            <td>₹120</td>
+          </tr>
+          <tr>
+            <td>Cinema ticket</td>
+            <td>Entertainment</td>
+            <td>2026-02-17</td>
+            <td>₹250</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         7. CHARTS &amp; AI INSIGHTS (reserved placeholder)
+         =========================================================== -->
+    <section id="insights" aria-labelledby="insights-heading">
+      <h2 id="insights-heading">Spending Charts &amp; AI Insights</h2>
+      <p>
+        This section will show category-wise spending charts and
+        AI-generated budgeting suggestions. Content will appear here
+        once the backend and AI integration are built.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- ===========================================================
+       8. FOOTER
+       =========================================================== -->
+  <footer>
+    <p>&copy; 2026 SpendSmart — DSU AI-Powered Full Stack Development Course</p>
+    <nav aria-label="Footer links">
+      <ul>
+        <li><a href="#dashboard">Back to top</a></li>
+        <li><a href="#add-expense">Add Expense</a></li>
+        <li><a href="#insights">Insights</a></li>
+      </ul>
+    </nav>
+  </footer>
+
+
+</body>
+</html>

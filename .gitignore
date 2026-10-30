@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit these
+.env
+*.env
+.env.local
+.env.*.local
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor cruft
+*.log
