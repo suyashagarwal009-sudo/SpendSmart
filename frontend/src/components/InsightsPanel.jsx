@@ -1,14 +1,41 @@
-import { monthLabel } from '../utils/format';
+import { useState } from 'react';
+import * as api from '../api/client';
+import { formatCurrency, monthLabel } from '../utils/format';
 import SpendingChart from './SpendingChart';
 
+const AI_STATUS_MESSAGES = {
+  'not-configured': 'AI narration is not configured on the server, so this is an offline summary built from the verified numbers.',
+  'rate-limited': 'The AI service is rate-limited right now, so this is an offline summary built from the verified numbers.',
+  timeout: 'The AI service timed out, so this is an offline summary built from the verified numbers.',
+  'invalid-response': 'The AI service returned an unusable reply, so this is an offline summary built from the verified numbers.',
+  unavailable: 'The AI service is unavailable, so this is an offline summary built from the verified numbers.',
+};
+
 /**
- * Charts & insights section. Shows the category chart when the
- * current month has expenses, otherwise an explanatory empty state.
- * AI-generated narrative is planned for Phase 7.
+ * Charts & insights section: the category chart (always visible when
+ * the month has data) plus the AI insights panel. The panel shows the
+ * verified calculations and a narrative labelled by its source.
  */
 export default function InsightsPanel({ monthKey, monthExpenses }) {
   const label = monthLabel(monthKey);
   const hasData = monthExpenses.length > 0;
+
+  const [insights, setInsights] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleGenerate() {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await api.getInsights(monthKey);
+      setInsights(data);
+    } catch (err) {
+      setError(err.message || 'Could not load insights. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <section id="insights" aria-labelledby="insights-heading">
@@ -23,6 +50,114 @@ export default function InsightsPanel({ monthKey, monthExpenses }) {
           No expenses recorded for {label} yet. Add an expense to see the category split.
         </p>
       )}
+
+      <div className="ai-insights" aria-labelledby="ai-insights-heading">
+        <h3 id="ai-insights-heading">AI Insights</h3>
+        <p>
+          Get a plain-language summary of your {label} spending with suggestions to stay
+          within budget. The numbers shown are always calculated by the app; the AI only
+          interprets them.
+        </p>
+
+        <button type="button" className="secondary-button" onClick={handleGenerate} disabled={loading}>
+          {loading ? 'Analysing…' : insights ? 'Refresh AI Insights' : 'Get AI Insights'}
+        </button>
+
+        {loading && (
+          <div className="app-status" role="status">
+            <span className="spinner" aria-hidden="true" />
+            Generating your insights…
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="form-message error" role="alert">
+            {error}
+          </div>
+        )}
+
+        {!loading && insights && (
+          <div className="ai-insights-result">
+            {insights.narrative.insufficientData ? (
+              <p className="ai-insights-empty" role="status">
+                {insights.narrative.summary}
+              </p>
+            ) : (
+              <>
+                <h4>Verified numbers for {monthLabel(insights.month)}</h4>
+                <dl className="ai-verified-stats">
+                  <div>
+                    <dt>Total spent</dt>
+                    <dd>{formatCurrency(insights.calculations.totals.spent)}</dd>
+                  </div>
+                  <div>
+                    <dt>{insights.calculations.budget.set ? 'Budget remaining' : 'Budget'}</dt>
+                    <dd>
+                      {insights.calculations.budget.set
+                        ? formatCurrency(insights.calculations.budget.remaining)
+                        : 'Not set'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Top category</dt>
+                    <dd>
+                      {insights.calculations.categories[0]
+                        ? `${insights.calculations.categories[0].category} (${insights.calculations.categories[0].percent}%)`
+                        : '—'}
+                    </dd>
+                  </div>
+                  {insights.calculations.totals.change !== null && (
+                    <div>
+                      <dt>Vs last month</dt>
+                      <dd>
+                        {insights.calculations.totals.change >= 0 ? '+' : ''}
+                        {insights.calculations.totals.change}%
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+
+                <p className={`ai-source-badge ${insights.narrativeSource === 'ai' ? 'ai-generated' : 'fallback'}`}>
+                  {insights.narrativeSource === 'ai'
+                    ? 'Summary generated by Claude from your verified figures'
+                    : insights.aiMessage || AI_STATUS_MESSAGES['not-configured']}
+                </p>
+
+                <h4>Summary</h4>
+                <p>{insights.narrative.summary}</p>
+
+                {insights.narrative.patterns.length > 0 && (
+                  <>
+                    <h4>Spending patterns</h4>
+                    <ul>
+                      {insights.narrative.patterns.map((pattern, index) => (
+                        <li key={index}>{pattern}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {insights.narrative.suggestions.length > 0 && (
+                  <>
+                    <h4>Suggestions to stay within budget</h4>
+                    <ul>
+                      {insights.narrative.suggestions.map((suggestion, index) => (
+                        <li key={index}>{suggestion}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                <p className="ai-disclaimer">
+                  Suggestions are general guidance based on your recorded spending, not a
+                  guarantee of savings. All amounts above are calculated by the app from
+                  your real expense records.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

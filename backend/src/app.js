@@ -17,6 +17,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { dbErrorHandler } = require('./middleware/dbErrorHandler');
 const { appStore } = require('./services/store');
 const { createMongoStore } = require('./services/mongoStore');
+const { createAiNarrator } = require('./services/aiNarrative');
 
 const CORS_OPTIONS = {
   origin(origin, callback) {
@@ -33,15 +34,18 @@ function createApp(options = {}) {
   app.use(cors(CORS_OPTIONS));
   app.use(express.json({ limit: '100kb' }));
 
+  const narrator =
+    options.narrator || createAiNarrator({ apiKey: env.anthropicApiKey, model: env.aiModel });
+
   if (env.mongoUri) {
     // The server is configured for MongoDB; the MongoDB store is used.
     // Tests can still inject their own store via options.store.
     const store = options.store || createMongoStore();
     const storageMode = options.storageMode || 'mongo';
-    app.use('/api', createApiRouter({ store, storageMode }));
+    app.use('/api', createApiRouter({ store, storageMode, narrator }));
   } else {
     // No MongoDB yet: temporary in-memory, same as Phase 4.
-    app.use('/api', createApiRouter({ store: options.store || appStore }));
+    app.use('/api', createApiRouter({ store: options.store || appStore, narrator }));
   }
   app.use(notFoundHandler);
   app.use(dbErrorHandler);

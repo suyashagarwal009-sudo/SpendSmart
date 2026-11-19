@@ -3,6 +3,7 @@
 const express = require('express');
 const { createExpenseRouter } = require('./expenseRoutes');
 const { createBudgetRouter } = require('./budgetRoutes');
+const { createInsightsRouter } = require('./insightsRoutes');
 
 /**
  * Mounts the API surface under /api:
@@ -16,8 +17,10 @@ const { createBudgetRouter } = require('./budgetRoutes');
  *   DELETE /api/expenses/:id    delete an expense
  *   GET    /api/budget          current month's budget
  *   PUT    /api/budget          set current month's budget
+ *   POST   /api/insights        spending insights for a month (verified
+ *                        calculations + AI or fallback narrative)
  */
-function createApiRouter({ store, storageMode }) {
+function createApiRouter({ store, storageMode, narrator }) {
   const router = express.Router();
 
   router.get('/health', (req, res) => {
@@ -34,6 +37,7 @@ function createApiRouter({ store, storageMode }) {
 
   router.use('/expenses', createExpenseRouter(store));
   router.use('/budget', createBudgetRouter(store));
+  router.use('/insights', createInsightsRouter(store, narrator));
 
   return router;
 }

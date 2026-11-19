@@ -59,6 +59,12 @@ const env = {
   // MongoDB connection string (Phase 5). When unset the API falls back
   // to temporary in-memory storage.
   mongoUri: process.env.MONGODB_URI || null,
+  // Anthropic API key for the AI insights narrative (Phase 7b). Server-side
+  // only — never sent to the browser. When unset, POST /api/insights uses
+  // the deterministic fallback narrative and reports aiStatus
+  // "not-configured".
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY || null,
+  aiModel: process.env.AI_MODEL || 'claude-sonnet-5-5',
 };
 
 module.exports = env;

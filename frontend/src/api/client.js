@@ -79,6 +79,16 @@ export function setBudget(amount) {
   return request('/api/budget', { method: 'PUT', body: { amount } });
 }
 
+/**
+ * AI spending insights for a month. Returns the verified calculations
+ * plus a narrative labelled by source ('ai' or 'fallback') and the AI
+ * status ('ok', 'not-configured', 'rate-limited', 'timeout',
+ * 'invalid-response', 'unavailable', or 'skipped').
+ */
+export function getInsights(month) {
+  return request('/api/insights', { method: 'POST', body: month ? { month } : {} });
+}
+
 export function getHealth() {
   return request('/api/health');
 }
