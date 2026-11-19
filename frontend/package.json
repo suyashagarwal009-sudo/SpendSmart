@@ -1,0 +1,27 @@
+{
+  "name": "spendsmart-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SpendSmart Phase 6 - React (Vite) frontend for the student expense tracker",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "spendsmart",
+    "expense-tracker",
+    "react",
+    "vite"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "vite": "^6.3.5"
+  }
+}
