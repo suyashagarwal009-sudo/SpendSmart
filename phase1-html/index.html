@@ -6,6 +6,7 @@
   <meta name="description" content="SpendSmart — AI-Powered Student Expense Tracker. Track your expenses, set a monthly budget, and get spending insights." />
   <title>SpendSmart — Student Expense Tracker</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
 </head>
 <body>
 
@@ -46,21 +47,22 @@
          =========================================================== -->
     <section aria-labelledby="summary-heading">
       <h2 id="summary-heading">Monthly Summary</h2>
+      <p id="summary-period" class="section-note"></p>
       <div class="summary-cards">
 
         <article class="card" aria-labelledby="budget-card-heading">
           <h3 id="budget-card-heading">Monthly Budget</h3>
-          <p class="card-amount" aria-label="Monthly budget: 5,000 rupees">₹5,000</p>
+          <p class="card-amount" id="budget-amount" aria-label="Monthly budget not set">₹0</p>
         </article>
 
         <article class="card" aria-labelledby="spending-card-heading">
           <h3 id="spending-card-heading">Total Spending</h3>
-          <p class="card-amount" aria-label="Total spending so far: 3,250 rupees">₹3,250</p>
+          <p class="card-amount" id="spending-amount" aria-label="Total spending so far: 0 rupees">₹0</p>
         </article>
 
         <article class="card" aria-labelledby="remaining-card-heading">
           <h3 id="remaining-card-heading">Remaining Balance</h3>
-          <p class="card-amount" aria-label="Remaining balance: 1,750 rupees">₹1,750</p>
+          <p class="card-amount" id="remaining-amount" aria-label="Remaining balance: 0 rupees">₹0</p>
         </article>
 
       </div>
@@ -72,7 +74,9 @@
     <section id="add-expense" aria-labelledby="add-expense-heading">
       <h2 id="add-expense-heading">Add Expense</h2>
 
-      <form action="#" method="post" aria-label="Add a new expense">
+      <form id="expense-form" action="#" method="post" aria-label="Add a new expense" novalidate>
+        <input type="hidden" id="expense-id" name="expenseId" />
+        <div id="expense-message" class="form-message" role="status" aria-live="polite"></div>
 
         <!-- Expense Title -->
         <div class="field">
@@ -149,7 +153,8 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit">Add Expense</button>
+        <button id="expense-submit" type="submit">Add Expense</button>
+        <button id="expense-cancel" class="secondary-button" type="button" hidden>Cancel Edit</button>
 
       </form>
     </section>
@@ -162,8 +167,10 @@
       <p>Define how much you plan to spend this month. SpendSmart will
       calculate your remaining balance and flag when you are close to
       or over budget.</p>
+      <p id="budget-period" class="section-note"></p>
 
-      <form action="#" method="post" aria-label="Set your monthly budget">
+      <form id="budget-form" action="#" method="post" aria-label="Set your monthly budget" novalidate>
+        <div id="budget-message" class="form-message" role="status" aria-live="polite"></div>
         <div class="field">
           <label for="monthly-budget">Monthly Budget (₹)</label>
           <input
@@ -176,8 +183,9 @@
             required
           />
         </div>
-        <button type="submit">Save Budget</button>
+        <button id="budget-submit" type="submit">Save Budget</button>
       </form>
+      <p id="budget-warning" class="budget-warning" role="alert" hidden></p>
     </section>
 
     <!-- ===========================================================
@@ -185,44 +193,48 @@
          =========================================================== -->
     <section id="history" aria-labelledby="history-heading">
       <h2 id="history-heading">Expense History</h2>
+      <p id="history-message" class="form-message" role="status" aria-live="polite"></p>
+
+      <div class="filters" role="group" aria-label="Filter expenses">
+        <div class="field">
+          <label for="filter-category">Filter by category</label>
+          <select id="filter-category">
+            <option value="">All categories</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Education">Education</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-from">From date</label>
+          <input type="date" id="filter-from" />
+        </div>
+        <div class="field">
+          <label for="filter-to">To date</label>
+          <input type="date" id="filter-to" />
+        </div>
+        <button id="clear-filters" class="secondary-button" type="button">Clear Filters</button>
+      </div>
+
+      <p id="filter-summary" class="filter-summary" role="status" aria-live="polite"></p>
 
       <div class="table-scroll">
       <table>
-        <caption>Recent expenses logged this month.</caption>
+        <caption id="history-caption">All saved expenses, newest first.</caption>
         <thead>
           <tr>
             <th scope="col">Title</th>
             <th scope="col">Category</th>
             <th scope="col">Date</th>
+            <th scope="col">Payment</th>
             <th scope="col">Amount</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>Bus ticket to campus</td>
-            <td>Transport</td>
-            <td>2026-02-14</td>
-            <td>₹30</td>
-          </tr>
-          <tr>
-            <td>Textbook — Data Structures</td>
-            <td>Education</td>
-            <td>2026-02-15</td>
-            <td>₹420</td>
-          </tr>
-          <tr>
-            <td>Lunch — canteen </td>
-            <td>Food</td>
-            <td>2026-02-16</td>
-            <td>₹120</td>
-          </tr>
-          <tr>
-            <td>Cinema ticket</td>
-            <td>Entertainment</td>
-            <td>2026-02-17</td>
-            <td>₹250</td>
-          </tr>
-        </tbody>
+        <tbody id="expense-table-body"></tbody>
       </table>
       </div>
     </section>
@@ -232,11 +244,9 @@
          =========================================================== -->
     <section id="insights" aria-labelledby="insights-heading">
       <h2 id="insights-heading">Spending Charts &amp; AI Insights</h2>
-      <p>
-        This section will show category-wise spending charts and
-        AI-generated budgeting suggestions. Content will appear here
-        once the backend and AI integration are built.
-      </p>
+      <p id="insights-caption" class="section-note" hidden></p>
+      <p id="insights-empty">Category-wise spending will appear here after you add an expense.</p>
+      <div id="category-breakdown" class="category-breakdown" hidden aria-label="Category-wise spending"></div>
     </section>
 
   </main>

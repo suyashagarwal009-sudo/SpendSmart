@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-phase3.js",
+    "test:phase3": "node test-phase3.js",
+    "test:viewports": "node test-viewports.js",
+    "test:all": "node test-phase3.js && node test-viewports.js"
   },
   "keywords": [],
   "type": "commonjs",
