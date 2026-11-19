@@ -1,0 +1,28 @@
+{
+  "name": "spendsmart-backend",
+  "version": "1.0.0",
+  "description": "SpendSmart Phase 4 - Express REST API for expenses and monthly budgets. Temporary in-memory storage until MongoDB is connected in Phase 5.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test \"tests/**/*.test.js\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "spendsmart",
+    "express",
+    "rest-api",
+    "expense-tracker"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "mongoose": "^8.24.10"
+  }
+}
