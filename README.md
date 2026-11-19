@@ -66,13 +66,13 @@ This repository currently contains the finished **HTML5 structure**, **CSS3 styl
 | 1 | HTML5 | Completed |
 | 2 | CSS3 (Grid, Flexbox, custom properties) | Completed |
 | 3 | JavaScript ES6+ | Completed |
-| 4 | Node.js + Express REST API | Completed (temporary in-memory storage; MongoDB connects in Phase 5) |
-| 5 | MongoDB + Mongoose | Pending |
+| 4 | Node.js + Express REST API | Completed |
+| 5 | MongoDB + Mongoose | Completed (falls back to temporary in-memory storage when no `MONGODB_URI` is set) |
 | 6 | React (Vite) | Pending |
 | 7 | AI API integration | Pending |
 | 8 | Testing, GitHub, deployment | In progress |
 
-**Not yet implemented:** MongoDB, the React frontend, and AI integration are pending — the AI/insights section remains an intentional placeholder. The Phase 4 API runs on temporary in-memory storage, so backend data resets on server restart; the frontend still uses LocalStorage until the backend integration is verified. No API keys or credentials exist anywhere in this project yet; when the AI integration is added, keys will live in a server-side `.env` file and will never ship in the frontend.
+**Not yet implemented:** the React frontend and AI integration are pending — the AI/insights section remains an intentional placeholder. The API persists to MongoDB when `MONGODB_URI` is set in `backend/.env`; without it, the server falls back to temporary in-memory storage and prints a banner stating this. The frontend still uses LocalStorage until the backend integration is verified. No API keys or credentials exist anywhere in this project yet; when the AI integration is added, keys will live in a server-side `.env` file and will never ship in the frontend.
 
 ## Getting Started
 
@@ -117,35 +117,38 @@ Expected viewport output (the Amount and Actions columns intentionally scroll *i
 │   ├── test-viewports.js   # Playwright responsive-layout check
 │   ├── package.json
 │   └── package-lock.json
-└── backend/                # Phase 4 REST API
+└── backend/                # Phase 4/5 REST API
     ├── src/
-    │   ├── config/         # env + shared constants
+    │   ├── config/         # env, shared constants, MongoDB connection
     │   ├── controllers/    # request handling + body validators
     │   ├── routes/         # Express routers (/api/expenses, /api/budget)
-    │   ├── middleware/     # async wrapper, 404 + centralized error handler
-    │   ├── services/       # domain logic + temporary in-memory store
+    │   ├── middleware/     # async wrapper, Mongo error mapping, 404 + centralized error handler
+    │   ├── models/         # Mongoose schemas (Expense, Budget)
+    │   ├── services/       # domain logic + MongoDB store (in-memory fallback)
     │   ├── utils/          # validation, errors, id helpers
     │   ├── app.js          # Express app factory
     │   └── server.js       # entry point
-    ├── tests/api.test.js   # 32 automated API tests
+    ├── tests/
+    │   ├── api.test.js     # 32 automated API tests (in-memory store)
+    │   └── mongo.test.js   # 8 automated API tests (real MongoDB via mongodb-memory-server)
     ├── demo.js             # scripted API walkthrough
     ├── package.json
     └── .env.example
 ```
 
-## Backend quick start (Phase 4)
+## Backend quick start (Phases 4 & 5)
 
 ```bash
 cd backend
 npm install
-copy .env.example .env    # optional; sensible defaults work without it
+copy .env.example .env    # set MONGODB_URI here to persist to MongoDB
 npm start                 # http://localhost:5000
 npm run dev               # same, with auto-restart on file changes
-npm test                  # 32 automated API tests
+npm test                  # 40 automated API tests (32 in-memory + 8 MongoDB)
 node demo.js              # scripted walkthrough of every endpoint
 ```
 
-The API uses **temporary in-memory storage** until MongoDB is connected in Phase 5: data is lost on restart, and the server prints a banner stating this. The frontend keeps using LocalStorage for now.
+When `MONGODB_URI` is set, expenses and budgets persist across restarts via Mongoose (local MongoDB or Atlas both work). Without it, the API runs on temporary in-memory storage: data is lost on restart, and the server prints a banner stating this. The frontend keeps using LocalStorage for now.
 
 ## Development Roadmap
 
@@ -153,7 +156,7 @@ The API uses **temporary in-memory storage** until MongoDB is connected in Phase
 |---|---|
 | 3 — JavaScript ES6+ | **Completed:** expense add/edit/delete with `localStorage`, budget calculations, category & date filters, live summary cards |
 | 4 — Node.js + Express | **Completed:** REST API (`GET/POST/PUT/PATCH/DELETE /api/expenses`, `GET/PUT /api/budget`, `GET /api/health`), validation, CORS, centralized error handling, temporary in-memory storage, API tests, demo script |
-| 5 — MongoDB + Mongoose | Expense and Budget schemas, API wired to MongoDB, history persistence |
+| 5 — MongoDB + Mongoose | **Completed:** Expense and Budget schemas, API wired to MongoDB with automatic in-memory fallback, persistence verified by tests against a real MongoDB instance |
 | 6 — React (Vite) | Dashboard rebuilt in React: components, state management, API calls, charts |
 | 7 — AI integration | Server-side AI endpoint (key kept in `.env`, never in frontend) producing spending summaries and budgeting suggestions |
 | 8 — Testing & deployment | Unit/API tests, CI, deployment of the full stack |

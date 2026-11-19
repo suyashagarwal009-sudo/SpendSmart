@@ -1,7 +1,7 @@
 {
   "name": "spendsmart-backend",
   "version": "1.0.0",
-  "description": "SpendSmart Phase 4 - Express REST API for expenses and monthly budgets. Temporary in-memory storage until MongoDB is connected in Phase 5.",
+  "description": "SpendSmart Phase 4/5 - Express REST API for expenses and monthly budgets, persisting to MongoDB via Mongoose with an in-memory fallback.",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
@@ -24,5 +24,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "mongoose": "^8.24.10"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0"
   }
 }
