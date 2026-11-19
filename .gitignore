@@ -13,3 +13,6 @@ Thumbs.db
 
 # Editor cruft
 *.log
+
+# Claude Code local session files
+.claude/

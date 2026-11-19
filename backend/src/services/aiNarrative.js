@@ -31,11 +31,11 @@ const SYSTEM_PROMPT = [
   'Rules:',
   '1. Never invent expenses, amounts, categories, or percentages. Use only the figures provided.',
   '2. Do not claim that following suggestions guarantees savings.',
-  '3. Write in simple, friendly language for a college student.',
+  '3. Write in simple, friendly language for a college student. All amounts are in Indian Rupees — write them with the ₹ symbol (e.g. ₹800), never with $ or plain numbers.',
   '4. Respond with JSON only, no markdown fences, exactly:',
   '   {"summary": string, "suggestions": string[], "patterns": string[]}',
   '5. "summary": 2-4 sentences on where the money went this month.',
-  '6. "suggestions": 2-4 concrete, realistic ways to stay within budget.',
+  '6. "suggestions": 2-4 concrete, realistic ways to stay within budget. When a daily spending cap would help, cite budget.suggestedDailyAllowance — it is pre-computed from the verified figures.',
   '7. "patterns": 1-3 short notes explaining spending patterns (e.g. biggest category, change vs last month).',
   '8. If the data is too thin for useful recommendations, say so plainly in "summary" and keep the other arrays short.',
 ].join('\n');
@@ -78,16 +78,21 @@ function buildAiPayload(calculations) {
           amount: calculations.budget.amount,
           remaining: calculations.budget.remaining,
           usagePercent: calculations.budget.usagePercent,
+          daysRemaining: Math.max(1, calculations.daysInMonth - calculations.daysElapsed + 1),
+          suggestedDailyAllowance: roundMoney(
+            calculations.budget.remaining /
+              Math.max(1, calculations.daysInMonth - calculations.daysElapsed + 1)
+          ),
         }
       : null,
     lowConfidence: calculations.lowConfidence,
   };
 }
 
-/** All ₹ amounts that appear in a piece of text, normalised to numbers. */
+/** All ₹- or $-prefixed amounts in a piece of text, normalised to numbers. */
 function extractRupeeAmounts(text) {
   const amounts = [];
-  const pattern = /₹\s?([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g;
+  const pattern = /[₹$]\s?([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g;
   let match;
   while ((match = pattern.exec(text)) !== null) {
     amounts.push(Number(match[1].replace(/,/g, '')));

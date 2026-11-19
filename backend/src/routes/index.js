@@ -20,7 +20,7 @@ const { createInsightsRouter } = require('./insightsRoutes');
  *   POST   /api/insights        spending insights for a month (verified
  *                        calculations + AI or fallback narrative)
  */
-function createApiRouter({ store, storageMode, narrator }) {
+function createApiRouter({ store, storageMode, narrator, insightsRateLimitMs }) {
   const router = express.Router();
 
   router.get('/health', (req, res) => {
@@ -37,7 +37,7 @@ function createApiRouter({ store, storageMode, narrator }) {
 
   router.use('/expenses', createExpenseRouter(store));
   router.use('/budget', createBudgetRouter(store));
-  router.use('/insights', createInsightsRouter(store, narrator));
+  router.use('/insights', createInsightsRouter(store, narrator, insightsRateLimitMs));
 
   return router;
 }

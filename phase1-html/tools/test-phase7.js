@@ -69,9 +69,13 @@ async function main() {
     await page.click('#expense-submit');
     await page.waitForTimeout(700);
 
-    // Insufficient-data path first: a month with nothing recorded.
-    // The endpoint defaults to the current month, so verify the empty
-    // message via the API, then the populated path in the UI.
+    // Generate insights in the UI first. Wait out the endpoint's 10s
+    // rate-limit window in case another suite called it just before.
+    await page.waitForTimeout(10500);
+    await page.click('button:has-text("Get AI Insights")');
+    await page.waitForSelector('.ai-insights-result', { timeout: 10000 });
+
+    await page.waitForTimeout(10500);
     const emptyResponse = await fetch(`${API_URL}/api/insights`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,10 +87,6 @@ async function main() {
       emptyBody.data.narrative.insufficientData === true &&
         /No expenses were recorded/i.test(emptyBody.data.narrative.summary)
     );
-
-    // Generate insights in the UI for the current month.
-    await page.click('button:has-text("Get AI Insights")');
-    await page.waitForSelector('.ai-insights-result', { timeout: 10000 });
 
     check('Verified stats show total spent ₹600', await page.locator('text=₹600').first().isVisible());
     check(
@@ -118,7 +118,9 @@ async function main() {
       await page.locator('.ai-disclaimer >> text=not a guarantee').isVisible()
     );
 
-    // Refresh button works (idempotent second call).
+    // Refresh button works (idempotent second call). The endpoint is
+    // rate-limited to one call per 10s, so wait out the window first.
+    await page.waitForTimeout(10500);
     await page.click('button:has-text("Refresh AI Insights")');
     await page.waitForSelector('.ai-insights-result', { timeout: 10000 });
     check('Refresh regenerates insights without error', true);

@@ -231,6 +231,7 @@ before(async () => {
     store,
     storageMode: 'temporary-in-memory',
     narrator: { generateNarrative: async () => ({ ok: false, reason: 'not-configured' }) },
+    insightsRateLimitMs: 0,
   });
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
@@ -265,6 +266,7 @@ test('endpoint: AI narrator result is returned as the narrative when it succeeds
     store,
     storageMode: 'temporary-in-memory',
     narrator: { generateNarrative: async () => ({ ok: true, narrative: aiNarrative }) },
+    insightsRateLimitMs: 0,
   });
   const aiServer = app.listen(0);
   await new Promise((resolve) => aiServer.once('listening', resolve));
@@ -313,6 +315,7 @@ test('endpoint: AI failure still returns full calculations with fallback narrati
     store,
     storageMode: 'temporary-in-memory',
     narrator: { generateNarrative: async () => ({ ok: false, reason: 'timeout' }) },
+    insightsRateLimitMs: 0,
   });
   const failServer = app.listen(0);
   await new Promise((resolve) => failServer.once('listening', resolve));
@@ -331,4 +334,35 @@ test('endpoint: AI failure still returns full calculations with fallback narrati
   assert.equal(body.data.aiStatus, 'timeout');
   assert.match(body.data.aiMessage, /timed out/);
   await new Promise((resolve) => failServer.close(resolve));
+});
+
+test('endpoint: rapid insights calls are rate-limited with 429', async () => {
+  const app = createApp({
+    store,
+    storageMode: 'temporary-in-memory',
+    narrator: { generateNarrative: async () => ({ ok: false, reason: 'not-configured' }) },
+    // Default 10s window applies in this test.
+  });
+  const limitedServer = app.listen(0);
+  await new Promise((resolve) => limitedServer.once('listening', resolve));
+  const limitedBase = `http://127.0.0.1:${limitedServer.address().port}`;
+
+  const first = await fetch(`${limitedBase}/api/insights`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ month: '2026-11' }),
+  });
+  assert.equal(first.status, 200);
+
+  const second = await fetch(`${limitedBase}/api/insights`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ month: '2026-11' }),
+  });
+  const secondBody = await second.json();
+  assert.equal(second.status, 429);
+  assert.equal(secondBody.success, false);
+  assert.match(secondBody.error.message, /Too many insight requests/);
+
+  await new Promise((resolve) => limitedServer.close(resolve));
 });

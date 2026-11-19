@@ -42,10 +42,10 @@ function createApp(options = {}) {
     // Tests can still inject their own store via options.store.
     const store = options.store || createMongoStore();
     const storageMode = options.storageMode || 'mongo';
-    app.use('/api', createApiRouter({ store, storageMode, narrator }));
+    app.use('/api', createApiRouter({ store, storageMode, narrator, insightsRateLimitMs: options.insightsRateLimitMs }));
   } else {
     // No MongoDB yet: temporary in-memory, same as Phase 4.
-    app.use('/api', createApiRouter({ store: options.store || appStore, narrator }));
+    app.use('/api', createApiRouter({ store: options.store || appStore, narrator, insightsRateLimitMs: options.insightsRateLimitMs }));
   }
   app.use(notFoundHandler);
   app.use(dbErrorHandler);

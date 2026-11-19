@@ -27,31 +27,22 @@ SpendSmart is a student-finance dashboard. Students can:
 - Integrate an AI model for personalized budgeting advice
 - Ship a deployable, tested product
 
-## Current Status — Phases 1, 2 & 3 Complete
+## Current Status — Phases 1–7 Complete
 
-This repository currently contains the finished **HTML5 structure**, **CSS3 styling**, and **JavaScript ES6+ functionality** of the dashboard. It runs entirely in the browser with no build step and no server: open `index.html` and it works.
+All seven development phases are finished and verified: the React frontend, the Express + MongoDB backend, and the AI insights feature. See [SUBMISSION.md](SUBMISSION.md) for the faculty demo checklist, deployment instructions, and known limitations.
 
 ### Completed Features
 
 | Feature | Status |
 |---|---|
-| Semantic, accessible HTML5 dashboard layout (header, nav, main, footer) | Done |
-| Add Expense form with title, amount, category, date, and payment method | Done |
-| Add, edit, and delete expenses with confirmation | Done |
-| Set and update a monthly budget per calendar month | Done |
-| Summary cards: Monthly Budget, Total Spending, Remaining Balance | Done |
-| Budget warnings at 80% usage and when the budget is exceeded | Done |
-| Expense history table with caption and column scope | Done |
-| Filter expenses by category and by date range, with clear-filters | Done |
-| Category-wise spending breakdown for the current month | Done |
-| Expenses and budgets persisted in LocalStorage with safe parsing | Done |
-| Validation for titles, amounts, categories, dates, and payment methods | Done |
-| Duplicate-submission prevention | Done |
-| Empty states for the table, insights, and budget | Done |
-| Polished responsive styling with CSS variables, Grid, and Flexbox | Done |
-| Desktop / tablet / mobile layouts with no horizontal page overflow | Done |
-| Keyboard focus visibility, reduced-motion support, ARIA landmarks | Done |
-| Reserved section for AI insights | Done (placeholder) |
+| Semantic, accessible dashboard (Phase 1 HTML) | Done |
+| Responsive CSS (Grid, Flexbox, custom properties) (Phase 2) | Done |
+| Add/edit/delete expenses, budget, filters, charts (Phase 3, vanilla JS demo) | Done |
+| Express REST API with validation and centralised errors (Phase 4) | Done |
+| MongoDB + Mongoose persistence with in-memory fallback (Phase 5) | Done |
+| React (Vite) frontend wired to the API (Phase 6) | Done |
+| AI spending insights with verified calculations and safe fallback (Phase 7) | Done |
+| Automated tests: 68 backend + 63 UI/browser checks | Done |
 
 ### Screenshots
 
@@ -74,6 +65,37 @@ This repository currently contains the finished **HTML5 structure**, **CSS3 styl
 
 **Not yet implemented:** deployment (Phase 8). The API persists to MongoDB when `MONGODB_URI` is set in `backend/.env`; without it, the server falls back to temporary in-memory storage and prints a banner stating this. The Phase 6 React frontend replaces LocalStorage with live API calls. The Phase 7 AI narrative calls Claude from the backend only: the key lives in `backend/.env` (`ANTHROPIC_API_KEY`), is never sent to the browser, and never appears in `VITE_` variables (which are public). Without a key the endpoint still works, returning a deterministic offline summary labelled as fallback.
 
+## Prerequisites
+
+| Tool | Version | Needed for |
+|---|---|---|
+| Node.js | 18+ (20+ recommended) | backend, frontend build |
+| npm | 9+ | dependency install |
+| MongoDB | 6+ local, or a free Atlas cluster | persistence (optional — the API falls back to in-memory storage without it) |
+| Anthropic API key | any paid/credit API key | AI-generated narratives (optional — a labelled offline summary is used without it) |
+
+## Architecture
+
+```
+┌─────────────────────────────┐  HTTPS/JSON   ┌──────────────────────────────┐  Mongoose  ┌────────────┐
+│ React 19 + Vite (port 5173) │ ────────────> │ Express API (port 5000)      │ ─────────> │ MongoDB    │
+│ components + api client     │               │ routes → controllers →       │            │ (optional; │
+│ VITE_API_URL ───────────────┘               │ services → stores            │            │ in-memory  │
+│                                              │            │                                │ fallback)  │
+│                                              │            └──> Anthropic API (AI narrative,│
+│                                              │                key server-side only)        │
+└──────────────────────────────────────────────└─────────────────────────────────────────────┘
+```
+
+- **Frontend** (`frontend/`): React 19 functional components; all HTTP calls live in one
+  module (`src/api/client.js`); the backend URL comes from the `VITE_API_URL` env variable.
+- **Backend** (`backend/`): layered Express app — routes → controllers (validation) →
+  services (domain logic) → stores (MongoDB via Mongoose, or in-memory fallback). The same
+  store interface powers both, so tests run without a database.
+- **AI layer** (`backend/src/services/aiNarrative.js`): deterministic statistics are computed
+  first; the AI only writes prose about them. Replies are validated (no invented ₹ amounts)
+  and any failure degrades to a labelled offline summary. The API key never leaves the server.
+
 ## Getting Started
 
 No installation needed for the app itself.
@@ -86,7 +108,7 @@ The page is plain HTML + CSS + JavaScript. Double-click it, or start any static 
 
 ### Running the tests
 
-The repository includes Playwright scripts for the Phase 3 UI (17 tests + responsive check) and for the Phase 6 React app (23 end-to-end checks + responsive check, run against the live backend and Vite dev server — see "Phase 6 end-to-end tests" below).
+The repository includes Playwright scripts for the Phase 3 UI (17 tests + responsive check), the Phase 6 React app (23 end-to-end checks + responsive check), the Phase 7 AI insights flow (10 checks), and a submission audit (39 API edge cases + 13 browser/console/accessibility checks) — all run against the live backend and Vite dev server. See [SUBMISSION.md](SUBMISSION.md) for the full test evidence table.
 
 ```
 cd phase1-html/tools
@@ -176,6 +198,44 @@ node demo.js              # scripted walkthrough of every endpoint
 ```
 
 When `MONGODB_URI` is set, expenses and budgets persist across restarts via Mongoose (local MongoDB or Atlas both work). Without it, the API runs on temporary in-memory storage: data is lost on restart, and the server prints a banner stating this.
+
+### Environment variables
+
+**Backend (`backend/.env`, copied from `backend/.env.example`):**
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `PORT` | no | `5000` | API port |
+| `NODE_ENV` | no | `development` | `production` hides internal error details |
+| `CORS_ORIGINS` | no | localhost dev origins | Comma-separated list of allowed browser origins |
+| `MONGODB_URI` | no | *(empty)* | MongoDB connection string; empty = in-memory storage |
+| `ANTHROPIC_API_KEY` | no | *(empty)* | Enables the Claude-generated narrative; empty = offline summary |
+| `AI_MODEL` | no | `claude-sonnet-5-5` | Model used for the narrative |
+
+**Frontend (`frontend/.env`, copied from `frontend/.env.example`):**
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `VITE_API_URL` | no | `http://localhost:5000` | Backend base URL. Public by design — never put secrets in `VITE_` variables. |
+
+## API endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/health` | Service status and storage mode |
+| GET | `/api/expenses` | All expenses (newest first) with `count` |
+| POST | `/api/expenses` | Create an expense |
+| GET | `/api/expenses/:id` | One expense |
+| PUT | `/api/expenses/:id` | Replace all editable fields |
+| PATCH | `/api/expenses/:id` | Update supplied fields |
+| DELETE | `/api/expenses/:id` | Delete an expense |
+| GET | `/api/budget` | Current month's budget |
+| PUT | `/api/budget` | Set the current month's budget (`{ "amount": 5000 }`) |
+| POST | `/api/insights` | Spending insights for a month (`{ "month": "YYYY-MM" }`, optional); rate-limited to one call per 10s |
+
+All responses use the envelope `{ "success": true, "data": ... }` or
+`{ "success": false, "error": { "message", "fields?" } }` with appropriate HTTP status codes
+(400 validation, 404 unknown record, 429 rate limit, 500 unexpected).
 
 ## Frontend quick start (Phase 6 — React + Vite)
 

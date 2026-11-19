@@ -36,7 +36,9 @@ const expenseSchema = new mongoose.Schema(
       max: [MAX_AMOUNT, `Amount must be ${MAX_AMOUNT} or less`],
       validate: {
         validator(value) {
-          return Number.isFinite(value) && Math.round(value * 100) === Number((value * 100).toFixed(0));
+          // The API layer rounds to 2 decimals before writing; this is
+          // the last line of defence against other write paths.
+          return Number.isFinite(value) && Math.abs(value * 100 - Math.round(value * 100)) < 1e-6;
         },
         message: 'Amount may have at most 2 decimal places',
       },
